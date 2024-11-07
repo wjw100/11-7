@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Game</title>
+    <style>
+        /* 样式代码 */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        #bingo-card {
+            display: grid;
+            grid-template-columns: repeat(5, 80px);
+            grid-gap: 5px;
+        }
+
+        .cell {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: lightblue;
+            font-size: 1.5em;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .selected {
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+
+<div id="bingo-card"></div>
+
+<script>
+    // 随机生成宾果卡
+    function generateBingoCard() {
+        const card = [];
+        for (let col = 0; col < 5; col++) {
+            const colNumbers = [];
+            const min = col * 15 + 1;
+            const max = min + 15;
+            while (colNumbers.length < 5) {
+                const num = Math.floor(Math.random() * (max - min)) + min;
+                if (!colNumbers.includes(num)) {
+                    colNumbers.push(num);
+                }
+            }
+            card.push(colNumbers);
+        }
+        card[2][2] = "FREE";  // 中心FREE格子
+        return card;
+    }
+
+    // 创建宾果卡UI
+    function createBingoCardUI(card) {
+        const bingoCard = document.getElementById('bingo-card');
+        bingoCard.innerHTML = ''; // 清空内容
+        for (let row = 0; row < 5; row++) {
+            for (let col = 0; col < 5; col++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.textContent = card[col][row];
+                if (row === 2 && col === 2) {
+                    cell.classList.add('selected');  // FREE格子
+                }
+                cell.addEventListener('click', () => selectNumber(cell, row, col));
+                bingoCard.appendChild(cell);
+            }
+        }
+    }
+
+    // 处理数字点击事件
+    const selectedCells = Array.from({ length: 5 }, () => Array(5).fill(false));
+    function selectNumber(cell, row, col) {
+        if (!selectedCells[row][col]) {
+            cell.classList.add('selected');
+            selectedCells[row][col] = true;
+            checkBingo();
+        }
+    }
+
+    // 检查是否达到宾果
+    function checkBingo() {
+        for (let i = 0; i < 5; i++) {
+            if (checkRow(i) || checkColumn(i)) {
+                alert('宾果！你赢了！');
+                resetGame();
+                return;
+            }
+        }
+        if (checkDiagonals()) {
+            alert('宾果！你赢了！');
+            resetGame();
+        }
+    }
+
+    // 检查是否完成一行
+    function checkRow(row) {
+        return selectedCells[row].every(cell => cell);
+    }
+
+    // 检查是否完成一列
+    function checkColumn(col) {
+        return selectedCells.every(row => row[col]);
+    }
+
+    // 检查对角线
+    function checkDiagonals() {
+        const leftToRight = selectedCells.every((row, i) => row[i]);
+        const rightToLeft = selectedCells.every((row, i) => row[4 - i]);
+        return leftToRight || rightToLeft;
+    }
+
+    // 重置游戏
+    function resetGame() {
+        selectedCells.forEach(row => row.fill(false));
+        const newCard = generateBingoCard();
+        createBingoCardUI(newCard);
+    }
+
+    // 初始化游戏
+    const card = generateBingoCard();
+    createBingoCardUI(card);
+</script>
+
+</body>
+</html>
